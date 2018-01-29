@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf8">
+	<title>Chocolate</title>
+	<style type="text/css">
+		#titleCanvas{
+			border: 1px solid gray;
+			position: relative;
+			top: 20px;
+			left: 20px;
+			width: 500px;
+			height: 100px;
+		}		
+		#selfCanvas{
+			border: 1px solid gray;
+			position: relative;
+			top: 40px;
+			left: 20px;
+			width: 150px;
+			height: 250px;
+		}
+		#otherCanvas{
+			border: 1px solid gray;
+			position: relative;
+			top: -210px;
+			left: 430px;
+			width: 150px;
+			height: 250px;
+		}
+		#resultCanvas{
+			border: 1px solid gray;
+			position: relative;
+			top: -460px;
+			left: 200px;
+			width: 200px;
+			height: 250px;
+		}
+		#count{
+			border: 1px solid gray;
+			position: relative;
+			top: -450px;
+			left: 20px;
+			width: 100px;
+			height: 20px;
+		}
+		#send{
+			border: 1px solid gray;
+			position: relative;
+			top: -450px;
+			left: 20px;
+			width: 40px;
+			height: 20px;
+		}
+	</style>
+</head>
+<body>
+
+<div id="titleCanvas">Title</div>
+<div id="selfCanvas">Self</div>
+<div id="otherCanvas">Other</div>
+<div id="resultCanvas">Result</div>
+
+<form>
+	<input type="text" id="count">
+	<button type="button" id="send">Send</button>
+</form>
+
+<script>
+
+var client = 0;
+
+{
+	var request = new XMLHttpRequest();
+	request.open('GET','http://localhost/host.php',false);
+	request.onload = function(){
+		if(request.status === 200){
+			var response = request.responseText;
+			var json     = JSON.parseInt(response);
+			client = json.message;
+		}
+	}
+}
+
+var selfCanvas = document.querySelector("#selfCanvas");
+var otherCanvas = document.querySelector("#otherCanvas");
+var resultCanvas = document.querySelector("#resultCanvas");
+
+selfCanvas.innerHTML ="";
+
+var send = document.querySelector("send");
+send.addEventListener("click",function(){
+	var count = document.querySelector("#count").value;
+	
+	var request = new XMLHttpRequest();
+});
+</script>
+
+</body>
+</html>
