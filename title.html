@@ -12,10 +12,26 @@
 			width: 500px;
 			height: 100px;
 		}
-		#start{
+		#nameCanvas{
 			border: 1px solid gray;
 			position: relative;
 			top: 50px;
+			left: 180px;
+			width: 100px;
+			height: 20px;
+		}
+		#name{
+			border: 1px solid gray;
+			position: relative;
+			top: 50px;
+			left: 180px;
+			width: 100px;
+			height: 20px;
+		}
+		#start{
+			border: 1px solid gray;
+			position: relative;
+			top: 70px;
 			left: 200px;
 			width: 100px;
 			height: 50px;
@@ -27,42 +43,86 @@
 <div id="titleCanvas">思考でSOSOGU!チョコレート</div>
 
 <form>
+<span id ="nameCanvas">Name</span>
+<input type="text" id="name">
+</form>
+<form>
 	<button type="button" id="start">Start</button>
 </form>
 
 <button onclick="clearInterval(timer)">Stop</button>
 
-<script>
+<span id = "number" value ="1000"></span>
 
+<script>
+var number = 100;
 var timeOut;
 var timer;
 var startBtn = document.querySelector("#start");
 startBtn.addEventListener("click",function(){
-	var url = "http://localhost/title.php";
-	var request = new XLHttpRequest();
-	request.open('GET',url,false);
-	request.onload = function(){
-		if(request.status === 200){
+	
+	var name = document.querySelector("#name").value;
+	if(name == ""){
+		alert('12345');
+		return;
+	}
+	
+	var request = new XMLHttpRequest();
+	request.open('GET', 'http://localhost/title.php?name='+name, false);
+	request.onload = function() {
+		if (request.status === 200) {
 			var response = request.responseText;
-			var json = JSON.parse(response);
+			var json     = JSON.parse(response);
+
 		}
 	};
-	request.onerror = function(){
+	request.onerror = function() {
+		//エラー時の処理
 		
-	}
-	request.send();
-	setTimeout(TimeOutFunction,3000);
+	};
+	//送信
+	request.send();		//POSTの場合は引数に文字列を渡す
+	
+	timeOut = setTimeout(TimeOutFunction,60000);
 	timer = setInterval(IntervalFunction,1000);
+	localStorage.setItem('name', name);
+	//window.location.href = "game.html";
 });
 
 function TimeOutFunction(){
 	clearInterval(timer);
+	
+	var request = new XMLHttpRequest();
+	request.open('GET', 'http://localhost/deletePlayer.php, false);
+	//送信
+	request.send();		//POSTの場合は引数に文字列を渡す
+	
 	alert('マッチング相手がみつかりませんでした');
 }
 
 function IntervalFunction(){
 	var d = new Date();
 	document.querySelector("#titleCanvas").innerHTML = d.toLocaleTimeString();
+	
+	var request = new XMLHttpRequest();
+	request.open('GET', 'http://localhost/title2.php, false);
+	request.onload = function() {
+		if (request.status === 200) {
+			var response = request.responseText;
+			var json     = JSON.parse(response);
+			
+			if(json == 2){
+				clearTimeout(timeOut);
+				window.location.href = "game.html";
+			}
+		}
+	};
+	request.onerror = function() {
+		//エラー時の処理
+		
+	};
+	//送信
+	request.send();		//POSTの場合は引数に文字列を渡す
 }
 </script>
 
