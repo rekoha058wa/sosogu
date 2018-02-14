@@ -1,7 +1,7 @@
 <?php
 $db = new PDO('mysql:host=localhost;dbname=sosogu;charset=utf8mb4', 'root', 'H@chiouji1');
 
-$stmt = $db->query('SELECT * FROM register');
+$stmt = $db->query('SELECT * FROM play');
 $row_count = $stmt->rowCount();
 
 header('Access-Control-Allow-Origin: *');

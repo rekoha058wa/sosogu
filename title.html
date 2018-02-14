@@ -50,80 +50,146 @@
 	<button type="button" id="start">Start</button>
 </form>
 
-<button onclick="clearInterval(timer)">Stop</button>
-
-<span id = "number" value ="1000"></span>
-
 <script>
 var number = 100;
 var timeOut;
 var timer;
+var localName;
+var localID;
+var localNumber;
+var ID;
 var startBtn = document.querySelector("#start");
+startBtn.disabled  = false;
 startBtn.addEventListener("click",function(){
 	
-	var name = document.querySelector("#name").value;
-	if(name == ""){
-		alert('12345');
+	localName = document.querySelector("#name").value;
+	if(localName == ""){
+		alert('name empty');
 		return;
 	}
 	
 	var request = new XMLHttpRequest();
-	request.open('GET', 'http://localhost/title.php?name='+name, false);
+	request.open('GET', 'http://localhost/title.php?name='+localName, false);
 	request.onload = function() {
 		if (request.status === 200) {
 			var response = request.responseText;
 			var json     = JSON.parse(response);
 
+			localID = json[0]["id"];
+			localNumber = json[0]["number"];
 		}
 	};
 	request.onerror = function() {
 		//エラー時の処理
-		
+		alert('error');
 	};
 	//送信
 	request.send();		//POSTの場合は引数に文字列を渡す
 	
 	timeOut = setTimeout(TimeOutFunction,60000);
 	timer = setInterval(IntervalFunction,1000);
-	localStorage.setItem('name', name);
-	//window.location.href = "game.html";
+	localStorage.setItem('name', localName);
+	startBtn.disabled  = true;
+	//window.location.href = "game.html?"+localName +"?"+localID;
 });
 
 function TimeOutFunction(){
 	clearInterval(timer);
-	
+
 	var request = new XMLHttpRequest();
-	request.open('GET', 'http://localhost/deletePlayer.php, false);
+	request.open(
+		'GET', 
+		'http://localhost/deletePlayer.php?name='+localName
+		+'&id='+localID,
+	 	false);
 	//送信
 	request.send();		//POSTの場合は引数に文字列を渡す
-	
 	alert('マッチング相手がみつかりませんでした');
+	startBtn.disabled  = false;
 }
 
 function IntervalFunction(){
-	var d = new Date();
-	document.querySelector("#titleCanvas").innerHTML = d.toLocaleTimeString();
-	
+    var number = 0;
 	var request = new XMLHttpRequest();
-	request.open('GET', 'http://localhost/title2.php, false);
+	request.open('GET', 'http://localhost/count.php', false);
 	request.onload = function() {
 		if (request.status === 200) {
 			var response = request.responseText;
 			var json     = JSON.parse(response);
 			
-			if(json == 2){
-				clearTimeout(timeOut);
-				window.location.href = "game.html";
-			}
+			number += json;
+			
 		}
 	};
 	request.onerror = function() {
 		//エラー時の処理
-		
+		alert('ERROR');
 	};
 	//送信
 	request.send();		//POSTの場合は引数に文字列を渡す
+	
+	var request = new XMLHttpRequest();
+	request.open('GET', 'http://localhost/countPlay.php', false);
+	request.onload = function() {
+		if (request.status === 200) {
+			var response = request.responseText;
+			var json     = JSON.parse(response);
+			
+			number += json;
+			
+			if(json>0)localNumber = 0;
+			else localNumber = 10000;
+			
+		}
+	};
+	request.onerror = function() {
+		//エラー時の処理
+		alert('ERROR');
+	};
+	//送信
+	request.send();		//POSTの場合は引数に文字列を渡す
+	
+	if(number == 2){
+		clearTimeout(timeOut);
+		
+			var request = new XMLHttpRequest();
+			request.open(
+				'GET', 
+				'http://localhost/registerPlay.php?name='+localName
+				+'&id='+localID
+				+'&number='+localNumber,
+	 			false);
+			request.onload = function() {
+			if (request.status === 200) {
+				var response = request.responseText;
+				var json     = JSON.parse(response);
+			
+				localNumber = json;
+			
+				}
+			};
+			request.onerror = function() {
+			//エラー時の処理
+			alert('ERROR');
+		};
+		//送信
+		request.send();		//POSTの場合は引数に文字列を渡す
+		window.location.href = "game.html?"+localName +"?"+localID + "?" + localNumber;
+	}
 }
+
+
+window.onbeforeunload = function(){
+	var request = new XMLHttpRequest();
+	request.open(
+		'GET', 
+		'http://localhost/deletePlayer.php?name='+localName
+		+'&id='+localID,
+	 	false);
+	//送信
+	request.send();		//POSTの場合は引数に文字列を渡す
+}
+
 </script>
 
 </body>

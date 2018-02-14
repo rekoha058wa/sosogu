@@ -56,10 +56,10 @@
 </head>
 <body>
 
-<div id="titleCanvas">Title</div>
+<div id="titleCanvas">思考でSOSOGU!チョコレート</div>
 <div id="selfCanvas">Self</div>
 <div id="otherCanvas">Other</div>
-<div id="resultCanvas">Result</div>
+<div id="resultCanvas"></div>
 
 <form>
 	<input type="text" id="count">
@@ -68,32 +68,242 @@
 
 <script>
 
-var client = 0;
-
-{
-	var request = new XMLHttpRequest();
-	request.open('GET','http://localhost/host.php',false);
-	request.onload = function(){
-		if(request.status === 200){
-			var response = request.responseText;
-			var json     = JSON.parseInt(response);
-			client = json.message;
-		}
-	}
-}
+var aarr = window.location.href.split('?');
+//get last value
+var localName = aarr[aarr.length -3];
+var localID = aarr[aarr.length-2];
+var first = aarr[aarr.length-1];
 
 var selfCanvas = document.querySelector("#selfCanvas");
 var otherCanvas = document.querySelector("#otherCanvas");
 var resultCanvas = document.querySelector("#resultCanvas");
 
-selfCanvas.innerHTML ="";
+var send = document.querySelector("#send");
 
-var send = document.querySelector("send");
+var timeInterval;
+
+var chance = 3;
+
+var localNumber = 0;
+//send.disabled  = false;
+if(first == 1){
+	resultCanvas.innerHTML += "あなたが先攻です。1〜9のなかで一つ選んでください<br>";
+	send.disabled  = false;
+}
+else if (first == 2){
+	resultCanvas.innerHTML += "あなたが後攻です。相手が数字を選ぶのお待ちください<br>";
+	send.disabled  = true;
+	timeInterval = setInterval(IntervalFunction,1000);
+}
+
+
 send.addEventListener("click",function(){
 	var count = document.querySelector("#count").value;
 	
-	var request = new XMLHttpRequest();
+	if(first == 1){
+		var request = new XMLHttpRequest();
+		request.open('GET', 'http://localhost/saveNumber.php?number='+count, false);
+		//送信
+		request.send();		//POSTの場合は引数に文字列を渡す
+	
+		send.disabled  = true;
+	
+		resultCanvas.innerHTML += "あなたが" + count + "を選んだ<br>";
+		timeInterval = setInterval(WaitTurn,1000);
+	}
+	else if(first == 2){
+	
+		if(count > localNumber){
+			resultCanvas.innerHTML += "数字は" + count + "より小さいです<br>";
+			chance-=1;
+		}
+		else if(count < localNumber){
+			resultCanvas.innerHTML += "数字は" + count + "より大きいです<br>";
+			chance-=1;
+		}
+		else{
+		
+			resultCanvas.innerHTML += "当たりました<br>";
+			chance = 3;
+			
+			var request = new XMLHttpRequest();
+			request.open('GET', 'http://localhost/saveNumber.php?number='+0, false);
+			//送信
+			request.send();		//POSTの場合は引数に文字列を渡す
+			
+			var request = new XMLHttpRequest();
+			request.open('GET', 'http://localhost/updateAmount.php?name='+localName + 
+			'&id='+localID + 
+			'&amount=' + localNumber +
+			'&who=' + 0, false);
+			
+			request.onload = function() {
+				if (request.status === 200) {
+				var response = request.responseText;
+				var json     = JSON.parse(response);
+			
+				resultCanvas.innerHTML += "相手に" + json + "ダメージを与えました<br>";
+				}
+			};
+			request.onerror = function() {
+				//エラー時の処理
+				alert('ERROR');
+			};
+			
+			//送信
+			request.send();		//POSTの場合は引数に文字列を渡す
+			
+			
+			
+			var request = new XMLHttpRequest();
+			request.open('GET', 'http://localhost/updateFirst.php?name='+localName + 
+			'&id='+localID + 
+			'&number=' + 1 +
+			'&who=' + 0, false);
+
+			//送信
+			request.send();		//POSTの場合は引数に文字列を渡す
+			
+			var request = new XMLHttpRequest();
+			request.open('GET', 'http://localhost/updateFirst.php?name='+localName + 
+			'&id='+localID + 
+			'&number=' + 2 +
+			'&who=' + 1, false);
+
+			//送信
+			request.send();		//POSTの場合は引数に文字列を渡す
+			
+			resultCanvas.innerHTML += "あなたが先攻です。1〜9のなかで一つ選んでください<br>";
+			first = 1;
+		}
+		
+		
+		if(chance <=0 ){
+			chance = 3;
+			var request = new XMLHttpRequest();
+			request.open('GET', 'http://localhost/saveNumber.php?number='+0, false);
+			//送信
+			request.send();		//POSTの場合は引数に文字列を渡す
+	
+			var request = new XMLHttpRequest();
+			request.open('GET', 'http://localhost/updateAmount.php?name='+localName + 
+			'&id='+localID + 
+			'&amount=' + localNumber +
+			'&who=' + 1, false);
+			
+			request.onload = function() {
+				if (request.status === 200) {
+				var response = request.responseText;
+				var json     = JSON.parse(response);
+			
+				resultCanvas.innerHTML += json + "ダメージを受けました<br>";
+				}
+			};
+			request.onerror = function() {
+				//エラー時の処理
+				alert('ERROR');
+			};
+			//送信
+			request.send();		//POSTの場合は引数に文字列を渡す
+			
+			var request = new XMLHttpRequest();
+			request.open('GET', 'http://localhost/updateFirst.php?name='+localName + 
+			'&id='+localID + 
+			'&number=' + 1 +
+			'&who=' + 0, false);
+
+			//送信
+			request.send();		//POSTの場合は引数に文字列を渡す
+			
+			var request = new XMLHttpRequest();
+			request.open('GET', 'http://localhost/updateFirst.php?name='+localName + 
+			'&id='+localID + 
+			'&number=' + 2 +
+			'&who=' + 1, false);
+
+			//送信
+			request.send();		//POSTの場合は引数に文字列を渡す
+			
+			resultCanvas.innerHTML += "あなたが先攻です。1〜9のなかで一つ選んでください<br>";
+			first = 1;
+		}
+		
+	}
 });
+
+function WaitTurn(){
+    var num = 0;
+	var request = new XMLHttpRequest();
+	request.open('GET', 'http://localhost/getFirst.php?name='+localName + 
+		'&id='+localID
+		, false);
+	request.onload = function() {
+		if (request.status === 200) {
+			var response = request.responseText;
+			var json     = JSON.parse(response);
+			
+			num = json;
+			resultCanvas.innerHTML += json;
+		}
+	};
+	request.onerror = function() {
+		//エラー時の処理
+		alert('ERROR');
+	};
+	//送信
+	request.send();		//POSTの場合は引数に文字列を渡す
+	
+	if(num == 2){
+		first = 2;
+		resultCanvas.innerHTML += "あなたが後攻です。相手が数字を選ぶのお待ちください<br>";
+		send.disabled  = true;
+		clearInterval(timeInterval);
+		timeInterval = setInterval(IntervalFunction,1000);
+	}
+}
+
+function IntervalFunction(){
+
+    var number = 0;
+	var request = new XMLHttpRequest();
+	request.open('GET', 'http://localhost/getNumber.php', false);
+	request.onload = function() {
+		if (request.status === 200) {
+			var response = request.responseText;
+			var json     = JSON.parse(response);
+			
+			number = json;
+		}
+	};
+	request.onerror = function() {
+		//エラー時の処理
+		alert('ERROR');
+	};
+	//送信
+	request.send();		//POSTの場合は引数に文字列を渡す
+	
+	if(number !=0){
+	    chance = 3;
+	    localStorage.setItem('number', number);
+		localNumber=number;
+		resultCanvas.innerHTML += "相手が数字を選んだようです。三回以内に当ててください<br>";
+		clearInterval(timeInterval);
+		send.disabled  = false;
+	}
+}
+/*
+window.onbeforeunload = function(){
+  	
+	var request = new XMLHttpRequest();
+	request.open(
+		'GET', 
+		'http://localhost/deletePlay.php?name='+localName
+		+'&id='+localID,
+	 	false);
+	//送信
+	request.send();		//POSTの場合は引数に文字列を渡す
+}
+*/
 </script>
 
 </body>
